@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,9 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import { TrendingUp, Award, ArrowLeft, Download, Filter } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
 
 const CutoffTrends = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [selectedCollege, setSelectedCollege] = useState('vjti');
   const [selectedBranch, setSelectedBranch] = useState('computer');
   const [selectedCategory, setSelectedCategory] = useState('open');
@@ -86,6 +87,52 @@ const CutoffTrends = () => {
     
     const categoryData = branch[selectedCategory as keyof typeof branch];
     return categoryData || [];
+  };
+
+  const handleExportData = () => {
+    const data = getCurrentData();
+    if (data.length === 0) {
+      toast({
+        title: "No data to export",
+        description: "Please select a valid combination of college, branch, and category.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const currentCollege = cutoffData[selectedCollege as keyof typeof cutoffData];
+    const collegeName = currentCollege?.name || selectedCollege;
+    const branchName = branches.find(b => b.id === selectedBranch)?.name || selectedBranch;
+    const categoryName = categories.find(c => c.id === selectedCategory)?.name || selectedCategory;
+
+    // Create CSV content
+    const headers = ['Year', 'Cutoff Rank', 'Available Seats'];
+    const csvContent = [
+      `# Cutoff Trends Export`,
+      `# College: ${collegeName}`,
+      `# Branch: ${branchName}`,
+      `# Category: ${categoryName}`,
+      `# Export Date: ${new Date().toLocaleDateString()}`,
+      '',
+      headers.join(','),
+      ...data.map(row => `${row.year},${row.cutoff},${row.seats}`)
+    ].join('\n');
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `cutoff-trends-${selectedCollege}-${selectedBranch}-${selectedCategory}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast({
+      title: "Data exported successfully",
+      description: `Cutoff trends data has been downloaded as CSV file.`
+    });
   };
 
   const currentData = getCurrentData();
@@ -186,7 +233,10 @@ const CutoffTrends = () => {
               </div>
 
               <div className="flex items-end">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700">
+                <Button 
+                  onClick={handleExportData}
+                  className="w-full bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700"
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Export Data
                 </Button>
