@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -35,6 +34,16 @@ const CapList = () => {
     setUser(parsedUser);
     setCapList(parsedUser.capList || []);
   }, [navigate]);
+
+  const handleGoBack = () => {
+    // Check if user is logged in to navigate to dashboard, otherwise go to home
+    const user = localStorage.getItem('mhtcet_user');
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
+  };
 
   const removeFromCapList = (collegeId: number) => {
     const updatedCapList = capList.filter(college => college.id !== collegeId);
@@ -110,7 +119,7 @@ const CapList = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <Button variant="ghost" size="sm" onClick={handleGoBack}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
