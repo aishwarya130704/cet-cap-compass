@@ -135,6 +135,16 @@ const CutoffTrends = () => {
     });
   };
 
+  const handleGoBack = () => {
+    // Check if user came from dashboard or another page
+    const user = localStorage.getItem('mhtcet_user');
+    if (user) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
+  };
+
   const currentData = getCurrentData();
   const currentCollege = cutoffData[selectedCollege as keyof typeof cutoffData];
 
@@ -145,7 +155,7 @@ const CutoffTrends = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
+              <Button variant="ghost" size="sm" onClick={handleGoBack}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
